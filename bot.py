@@ -1,4 +1,5 @@
 import os
+import random
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -10,21 +11,17 @@ CLIENT_ID = os.getenv('CLIENT_ID')
 PREFIX = 's!'
 
 # Client declaration
-client = commands.Bot(command_prefix=PREFIX)
+bot = commands.Bot(command_prefix='s!')
 
-# Events
-@client.event
+@bot.event
 async def on_ready():
-    print('Logged on as {0}!'.format(client.user))
+    print('Logged on as {0}!'.format(bot.user))
 
-@client.event
-async def on_message(message):
-    if client.user == message.author:
-        return
-    print('Message from {0.author}: {0.content}'.format(message))
 
-# Commands
+@bot.command()
+async def play(ctx, name):
+    await ctx.send(f'Playing {name}')
 
 
 # Run
-client.run(TOKEN)
+bot.run(TOKEN)
