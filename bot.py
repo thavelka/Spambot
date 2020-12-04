@@ -30,7 +30,7 @@ async def on_guild_join(guild):
 
 @bot.command()
 async def play(ctx, *, query):
-    """Plays a file from the local filesystem"""
+    """Plays a file from the guild's sounds folder. Format: `s!play {name}`"""
     path = f'./sounds/{ctx.guild.id}/{query}.mp3'
     source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(path))
     ctx.voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
@@ -40,7 +40,7 @@ async def play(ctx, *, query):
 
 @bot.command()
 async def upload(ctx, *, name):
-    """Uploads a file to the guild's sounds directory"""
+    """Uploads a sound file. Format: `s!upload {name}` plus attachment"""
     if not ctx.message.attachments:
         await ctx.send("Attachment required")
     elif not name:
