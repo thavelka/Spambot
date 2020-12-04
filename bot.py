@@ -19,6 +19,7 @@ last_play = None
 async def on_ready():
     print('Logged on as {0}!'.format(bot.user))
     os.system('mkdir ./sounds')
+    os.system('mkdir ./sounds/tmp')
     for guild in bot.guilds:
         os.system(f'mkdir ./sounds/{guild.id}')
 
@@ -36,6 +37,22 @@ async def play(ctx, *, query):
     await asyncio.sleep(30)
     if ctx.voice_client and not ctx.voice_client.is_playing():
         await ctx.voice_client.disconnect()
+
+@bot.command()
+async def upload(ctx, *, name):
+    """Uploads a file to the guild's sounds directory"""
+    if not ctx.message.attachments:
+        await ctx.send("Attachment required")
+    elif not name:
+        await ctx.send("Name is required")
+    else:
+        attachment = ctx.message.attachments[0]
+        tmp = f'./sounds/tmp/{attachment.filename}'
+        print(tmp)
+        await attachment.save(tmp)
+        os.system(f'ffmpeg -i {tmp} -ab 48k -ac 1 -ar 22050 -to 00:00:29 ./sounds/{ctx.guild.id}/{name.strip()}.mp3')
+        os.system(f'rm {tmp}')
+        await ctx.send(f'Uploaded {name.strip()}')
 
 @bot.command()
 async def list(ctx):
