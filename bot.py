@@ -1,10 +1,10 @@
 import os
 from os import path
+from datetime import datetime
 import asyncio
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from datetime import datetime
 
 
 load_dotenv()
@@ -14,6 +14,7 @@ PREFIX = 's!'
 
 # Client declaration
 bot = commands.Bot(command_prefix='s!')
+
 
 @bot.event
 async def on_ready():
@@ -25,11 +26,14 @@ async def on_ready():
     for guild in bot.guilds:
         if not path.exists(f'sounds/{guild.id}'):
             os.mkdir('sounds/{guild.id}')
+
+
 @bot.event
 async def on_guild_join(guild):
     print(f'Joined guild: {guild.name}')
     if not path.exists(f'sounds/{guild.id}'):
         os.mkdir('sounds/{guild.id}')
+
 
 @bot.event
 async def on_error(event, *args, **kwargs):
@@ -44,14 +48,16 @@ async def on_error(event, *args, **kwargs):
 @bot.command()
 async def play(ctx, *, query):
     """Plays a file from the guild's sounds folder. Format: `s!play {name}`"""
-    filepath = f'./sounds/{ctx.guild.id}/{query}.mp3'
+    filepath = f'sounds/{ctx.guild.id}/{query}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
-    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
-    ctx.voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
-    await asyncio.sleep(30)
+    else:
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
+        ctx.voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
+        await asyncio.sleep(30)
     if ctx.voice_client and not ctx.voice_client.is_playing():
         await ctx.voice_client.disconnect()
+
 
 @bot.command()
 async def upload(ctx, *, name):
@@ -80,6 +86,7 @@ async def upload(ctx, *, name):
         os.system(f'rm {tmp}')
         await ctx.send(f'Uploaded {name.strip()}')
 
+
 @bot.command()
 async def list(ctx):
     """Lists sounds in the guild's directory"""
@@ -90,6 +97,24 @@ async def list(ctx):
         else:
             files.sort()
             await ctx.send(', '.join(files))
+
+
+@bot.command()
+async def delete(ctx, *, name):
+    """Deletes specified sound from the guild's directory"""
+    if not name:
+        await ctx.send("Name is required")
+        return
+    if len(name.split()) > 1:
+        await ctx.send("Name must be one word")
+        return
+    filepath = f'sounds/{ctx.guild.id}/{name.strip()}.mp3'
+    if not path.exists(filepath):
+        await ctx.send(f'Sound {name} not found.')
+    else:
+        os.remove(filepath)
+        await ctx.send(f'Deleted sound {name}.')
+
 
 @play.before_invoke
 async def ensure_voice(ctx):
