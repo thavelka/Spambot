@@ -66,6 +66,13 @@ async def upload(ctx, *, name):
         await ctx.send(f'A sound with name {name} already exists')
     else:
         attachment = ctx.message.attachments[0]
+        components = attachment.filename.split('.')
+        if len(components) < 2:
+            await ctx.send('File type could not be determined')
+            return
+        elif components[1].lower() not in ['mp3', 'm4a', 'ogg', 'wav', 'flac', 'mp4', 'mkv', 'webm']:
+            await ctx.send('Unsupported file type')
+            return
         tmp = f'./sounds/tmp/{attachment.filename}'
         print(tmp)
         await attachment.save(tmp)
