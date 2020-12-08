@@ -44,7 +44,6 @@ async def on_error(event, *args, **kwargs):
         else:
             raise
 
-
 @bot.command()
 async def play(ctx, *, query):
     """Plays a file from the guild's sounds folder. Format: `s!play {name}`"""
@@ -57,6 +56,17 @@ async def play(ctx, *, query):
         await asyncio.sleep(30)
     if ctx.voice_client and not ctx.voice_client.is_playing():
         await ctx.voice_client.disconnect()
+
+
+# @bot.event
+# async def on_voice_state_update(member, before, after):
+#     print("onvoicestateupdate")
+#     # if before.channel is None and after.channel is not None:
+#     intro_dict = get_intro_dict(member.guild)
+#     sound = intro_dict.get(member.id)
+#     if sound:
+#         print("playing", sound)
+#         await bot.invoke(bot.get_command('play'), sound)
 
 
 @bot.command()
@@ -115,6 +125,32 @@ async def delete(ctx, *, name):
         os.remove(filepath)
         await ctx.send(f'Deleted sound {name}.')
 
+@bot.command()
+async def setintro(ctx, *, name):
+    """Set intro sound to play when you enter voice chat"""
+    if not name:
+        await ctx.send("Name is required")
+        return
+    if len(name.split()) > 1:
+        await ctx.send("Name must be one word")
+        return
+    filepath = f'sounds/{ctx.guild.id}/{name.strip()}.mp3'
+    if not path.exists(filepath):
+        await ctx.send(f'Sound {name} not found.')
+    else:
+        intro_dict = get_intro_dict(ctx.guild)
+        intro_dict[ctx.author.id] = name
+        save_intro_dict(ctx.guild, intro_dict)
+        await ctx.send(f'Set {name} as intro sound for {ctx.author.name}.')
+
+@bot.command()
+async def clearintro(ctx):
+    """Removes intro sound for user"""
+    intro_dict = get_intro_dict(ctx.guild)
+    del intro_dict[ctx.user.id]
+    save_intro_dict(ctx.guild, intro_dict)
+    await ctx.send(f'Removed intro sound for {ctx.author.name}.')
+
 
 @play.before_invoke
 async def ensure_voice(ctx):
@@ -126,6 +162,25 @@ async def ensure_voice(ctx):
             raise commands.CommandError("Author not connected to a voice channel.")
     elif ctx.voice_client.is_playing():
         ctx.voice_client.stop()
+
+
+def get_intro_dict(guild):
+    """Returns dictionary containing users' intro sounds from file"""
+    filepath = f'sounds/{guild.id}/intros.txt'
+    if path.exists(filepath):
+        with open(filepath) as f:
+            return dict([line.split() for line in f])
+    else:
+        return {}
+
+
+def save_intro_dict(guild, data):
+    """Saves guilds intro sounds dictionary back to file"""
+    filepath = f'sounds/{guild.id}/intros.txt'
+    with open(filepath, 'w') as f:
+        for k, v in data.items():
+            f.write(f'{k} {v}')
+
 
 # Run
 bot.run(TOKEN)
