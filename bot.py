@@ -53,7 +53,7 @@ async def play(ctx, *, query):
     else:
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
         ctx.voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
-        await asyncio.sleep(30)
+        await asyncio.sleep(32)
     if ctx.voice_client and not ctx.voice_client.is_playing():
         await ctx.voice_client.disconnect()
 
@@ -92,7 +92,7 @@ async def upload(ctx, *, name):
         tmp = f'./sounds/tmp/{attachment.filename}'
         print(tmp)
         await attachment.save(tmp)
-        os.system(f'ffmpeg -i {tmp} -ab 48k -ac 1 -ar 22050 -to 00:00:29 ./sounds/{ctx.guild.id}/{name.strip()}.mp3')
+        os.system(f'ffmpeg -i {tmp} -ab 48k -ac 1 -ar 22050 -to 00:00:30 ./sounds/{ctx.guild.id}/{name.strip()}.mp3')
         os.system(f'rm {tmp}')
         await ctx.send(f'Uploaded {name.strip()}')
 
