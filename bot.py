@@ -25,14 +25,14 @@ async def on_ready():
         os.mkdir('sounds/tmp')
     for guild in bot.guilds:
         if not path.exists(f'sounds/{guild.id}'):
-            os.mkdir('sounds/{guild.id}')
+            os.mkdir(f'sounds/{guild.id}')
 
 
 @bot.event
 async def on_guild_join(guild):
     print(f'Joined guild: {guild.name}')
     if not path.exists(f'sounds/{guild.id}'):
-        os.mkdir('sounds/{guild.id}')
+        os.mkdir(f'sounds/{guild.id}')
 
 
 @bot.event
