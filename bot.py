@@ -131,7 +131,7 @@ async def list(ctx):
             await ctx.send('Sounds directory is empty. Type s!help to see how to upload new sound files.')
         else:
             files.sort()
-            mp3s = [x for x in files if ".mp3" in x]
+            mp3s = [x.split(".")[0] for x in files if ".mp3" in x]
             await ctx.send(', '.join(mp3s))
 
 
@@ -153,7 +153,7 @@ async def delete(ctx, *, name):
 
 @bot.command()
 async def setintro(ctx, *, name):
-    """Set intro sound to play when you enter voice chat"""
+    """Set intro sound to play when you enter voice chat. Format: `s!setintro {name}`"""
     if not name:
         await ctx.send("Name is required")
         return
