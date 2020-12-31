@@ -58,15 +58,15 @@ async def play(ctx, *, query):
         await ctx.voice_client.disconnect()
 
 
-# @bot.event
-# async def on_voice_state_update(member, before, after):
-#     print("onvoicestateupdate")
-#     # if before.channel is None and after.channel is not None:
-#     intro_dict = get_intro_dict(member.guild)
-#     sound = intro_dict.get(member.id)
-#     if sound:
-#         print("playing", sound)
-#         await bot.invoke(bot.get_command('play'), sound)
+@bot.event
+async def on_voice_state_update(member, before, after):
+    print("onvoicestateupdate")
+    if before.channel is None and after.channel is not None:
+        intro_dict = get_intro_dict(member.guild)
+        sound = intro_dict.get(str(member.id))
+        #voice_client = member.guild.voice
+        if sound:
+            print("playing", sound)
 
 
 @bot.command()
@@ -106,7 +106,8 @@ async def list(ctx):
             await ctx.send('Sounds directory is empty. Type s!help to see how to upload new sound files.')
         else:
             files.sort()
-            await ctx.send(', '.join(files))
+            mp3s = [x for x in files if ".mp3" in x]
+            await ctx.send(', '.join(mp3s))
 
 
 @bot.command()
@@ -139,7 +140,7 @@ async def setintro(ctx, *, name):
         await ctx.send(f'Sound {name} not found.')
     else:
         intro_dict = get_intro_dict(ctx.guild)
-        intro_dict[ctx.author.id] = name
+        intro_dict[str(ctx.author.id)] = name
         save_intro_dict(ctx.guild, intro_dict)
         await ctx.send(f'Set {name} as intro sound for {ctx.author.name}.')
 
@@ -179,7 +180,7 @@ def save_intro_dict(guild, data):
     filepath = f'sounds/{guild.id}/intros.txt'
     with open(filepath, 'w') as f:
         for k, v in data.items():
-            f.write(f'{k} {v}')
+            f.write(f'{k} {v}\n')
 
 
 # Run
