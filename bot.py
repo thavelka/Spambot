@@ -60,14 +60,39 @@ async def play(ctx, *, query):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    print("onvoicestateupdate")
+    # Only continue if user is joining VC
     if before.channel is None and after.channel is not None:
         intro_dict = get_intro_dict(member.guild)
-        sound = intro_dict.get(str(member.id))
-        #voice_client = member.guild.voice
-        if sound:
-            print("playing", sound)
 
+        # Check if user has intro sound set
+        sound = intro_dict.get(str(member.id))
+        if not sound:
+            return
+
+        # Check if sound file exists
+        filepath = f'sounds/{member.guild.id}/{sound}.mp3'
+        if not path.exists(filepath):
+            return
+
+        # Connect to voice channel if not connected, stop if already playing
+        voice_client = member.guild.voice_client
+        if voice_client is None:
+            if member.voice:
+                await member.voice.channel.connect()
+        elif voice_client.is_playing():
+            voice_client.stop()
+        voice_client = member.guild.voice_client
+        if not voice_client:
+            return
+
+        # Play the sound
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
+        voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
+
+        # Disconnect after a minute if not playing anything
+        await asyncio.sleep(62)
+        if voice_client and not voice_client.is_playing():
+            await voice_client.disconnect()
 
 @bot.command()
 async def upload(ctx, *, name):
@@ -148,7 +173,7 @@ async def setintro(ctx, *, name):
 async def clearintro(ctx):
     """Removes intro sound for user"""
     intro_dict = get_intro_dict(ctx.guild)
-    del intro_dict[ctx.user.id]
+    del intro_dict[str(ctx.author.id)]
     save_intro_dict(ctx.guild, intro_dict)
     await ctx.send(f'Removed intro sound for {ctx.author.name}.')
 
