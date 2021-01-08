@@ -45,12 +45,22 @@ async def on_error(event, *args, **kwargs):
             raise
 
 @bot.command()
-async def play(ctx, *, query):
+async def play(ctx, query, effect=None):
     """Plays a file from the guild's sounds folder. Format: `s!play {name}`"""
     filepath = f'sounds/{ctx.guild.id}/{query}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
     else:
+        if effect in ["bb", "fast", "slow"]:
+            outpath = f'sounds/{ctx.guild.id}/tmp.mp3'
+            if effect == "bb":
+                os.system(f'ffmpeg -y -i {filepath} -filter_complex "acrusher=level_in=4:level_out=10:bits=8:mode=log:aa=1" -f mp3 - | ffmpeg -y -i - -filter "bass=g=14:f=150" {outpath}')
+            elif effect == "fast":
+                os.system(f'ffmpeg -y -i {filepath} -af asetrate=22050*1.5,aresample=22050 {outpath}')
+            elif effect == "slow":
+                os.system(f'ffmpeg -y -i {filepath} -af asetrate=22050*0.6,aresample=22050 {outpath}')
+            filepath = outpath
+
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
         ctx.voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
         await asyncio.sleep(62)
