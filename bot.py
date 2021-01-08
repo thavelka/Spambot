@@ -52,7 +52,7 @@ async def play(ctx, query, effect=None):
         await ctx.send(f'Sound {query} not found')
     else:
         if effect in ["bb", "fast", "slow"]:
-            outpath = f'sounds/{ctx.guild.id}/tmp.mp3'
+            outpath = f'sounds/{ctx.guild.id}/.tmp.mp3'
             if effect == "bb":
                 os.system(f'ffmpeg -y -i {filepath} -filter_complex "acrusher=level_in=4:level_out=10:bits=8:mode=log:aa=1" -f mp3 - | ffmpeg -y -i - -filter "bass=g=14:f=150" {outpath}')
             elif effect == "fast":
@@ -141,7 +141,7 @@ async def list(ctx):
             await ctx.send('Sounds directory is empty. Type s!help to see how to upload new sound files.')
         else:
             files.sort()
-            mp3s = [x.split(".")[0] for x in files if ".mp3" in x]
+            mp3s = [x.split(".")[0] for x in files if ".mp3" in x and x != ".tmp.mp3"]
             await ctx.send(', '.join(mp3s))
 
 
