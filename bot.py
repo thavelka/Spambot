@@ -46,7 +46,7 @@ async def on_error(event, *args, **kwargs):
 
 @bot.command()
 async def play(ctx, query, effect=None):
-    """Plays a file from the guild's sounds folder. Format: `s!play {name}`"""
+    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow](optional)`"""
     filepath = f'sounds/{ctx.guild.id}/{query}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
