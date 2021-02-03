@@ -47,7 +47,7 @@ async def on_error(event, *args, **kwargs):
 
 @bot.command()
 async def play(ctx, query, *effects):
-    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow, echo, robot, loop](optional)`"""
+    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow, echo, robot, loop, reverse](optional)`"""
     filepath = f'sounds/{ctx.guild.id}/{query}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
@@ -70,6 +70,8 @@ async def play(ctx, query, *effects):
                     os.system(f'ffmpeg -y -i {inpath} -af afftfilt="real=\'hypot(re,im)*sin(0)\':imag=\'hypot(re,im)*cos(0)\':win_size=512:overlap=0.75" {outpath}')
                 elif effect == "loop":
                     os.system(f'ffmpeg -y -i {inpath} -af aloop=5:size=22050*3 {outpath}')
+                elif effect == "reverse":
+                    os.system(f'ffmpeg -y -i {inpath} -af areverse {outpath}')
             filepath = outpath
 
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
