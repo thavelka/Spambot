@@ -5,6 +5,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from shutil import copyfile
 
 
 load_dotenv()
@@ -45,20 +46,30 @@ async def on_error(event, *args, **kwargs):
             raise
 
 @bot.command()
-async def play(ctx, query, effect=None):
-    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow](optional)`"""
+async def play(ctx, query, *effects):
+    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow, echo, robot, loop](optional)`"""
     filepath = f'sounds/{ctx.guild.id}/{query}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
     else:
-        if effect in ["bb", "fast", "slow"]:
+        if effects and len(effects) > 0:
+            inpath = f'sounds/{ctx.guild.id}/.in.mp3'
             outpath = f'sounds/{ctx.guild.id}/.tmp.mp3'
-            if effect == "bb":
-                os.system(f'ffmpeg -y -i {filepath} -filter_complex "acrusher=level_in=4:level_out=10:bits=8:mode=log:aa=1" -f mp3 - | ffmpeg -y -i - -filter "bass=g=14:f=150" {outpath}')
-            elif effect == "fast":
-                os.system(f'ffmpeg -y -i {filepath} -af asetrate=22050*1.5,aresample=22050 {outpath}')
-            elif effect == "slow":
-                os.system(f'ffmpeg -y -i {filepath} -af asetrate=22050*0.6,aresample=22050 {outpath}')
+            copyfile(filepath, outpath)
+            for effect in effects:
+                copyfile(outpath, inpath)
+                if effect == "bb":
+                    os.system(f'ffmpeg -y -i {inpath} -filter_complex "acrusher=level_in=4:level_out=10:bits=8:mode=log:aa=1" -f mp3 - | ffmpeg -y -i - -filter "bass=g=14:f=150" {outpath}')
+                elif effect == "fast":
+                    os.system(f'ffmpeg -y -i {inpath} -af asetrate=22050*1.5,aresample=22050 {outpath}')
+                elif effect == "slow":
+                    os.system(f'ffmpeg -y -i {inpath} -af asetrate=22050*0.6,aresample=22050 {outpath}')
+                elif effect == "echo":
+                    os.system(f'ffmpeg -y -i {inpath} -af aecho=0.9:0.6:200:1 {outpath}')
+                elif effect == "robot":
+                    os.system(f'ffmpeg -y -i {inpath} -af afftfilt="real=\'hypot(re,im)*sin(0)\':imag=\'hypot(re,im)*cos(0)\':win_size=512:overlap=0.75" {outpath}')
+                elif effect == "loop":
+                    os.system(f'ffmpeg -y -i {inpath} -af aloop=5:size=22050*3 {outpath}')
             filepath = outpath
 
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
