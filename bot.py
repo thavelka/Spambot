@@ -14,8 +14,7 @@ CLIENT_ID = os.getenv('CLIENT_ID')
 PREFIX = 's!'
 
 # Client declaration
-bot = commands.Bot(command_prefix='s!')
-
+bot = commands.Bot(command_prefix=('s!', 'S!', 'alexa ', 'Alexa ', 'ALEXA '), case_insensitive = True)
 
 @bot.event
 async def on_ready():
@@ -48,7 +47,7 @@ async def on_error(event, *args, **kwargs):
 @bot.command()
 async def play(ctx, query, *effects):
     """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow, echo, robot, loop, reverse](optional)`"""
-    filepath = f'sounds/{ctx.guild.id}/{query}.mp3'
+    filepath = f'sounds/{ctx.guild.id}/{query.lower()}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
     else:
@@ -119,6 +118,7 @@ async def on_voice_state_update(member, before, after):
 
 @bot.command()
 async def upload(ctx, *, name):
+    name = name.lower().strip()
     """Uploads a sound file. Format: `s!upload {name}` plus attachment"""
     if not ctx.message.attachments:
         await ctx.send("Attachment required")
@@ -126,7 +126,7 @@ async def upload(ctx, *, name):
         await ctx.send("Name is required")
     elif len(name.split()) > 1:
         await ctx.send("Name must be one word")
-    elif path.exists(f'./sounds/{ctx.guild.id}/{name.strip()}.mp3'):
+    elif path.exists(f'./sounds/{ctx.guild.id}/{name}.mp3'):
         await ctx.send(f'A sound with name {name} already exists')
     else:
         attachment = ctx.message.attachments[0]
@@ -140,9 +140,9 @@ async def upload(ctx, *, name):
         tmp = f'./sounds/tmp/{attachment.filename}'
         print(tmp)
         await attachment.save(tmp)
-        os.system(f'ffmpeg -i {tmp} -ab 48k -ac 1 -ar 22050 -to 00:00:59 ./sounds/{ctx.guild.id}/{name.strip()}.mp3')
+        os.system(f'ffmpeg -i {tmp} -ab 48k -ac 1 -ar 22050 -to 00:00:59 ./sounds/{ctx.guild.id}/{name}.mp3')
         os.system(f'rm {tmp}')
-        await ctx.send(f'Uploaded {name.strip()}')
+        await ctx.send(f'Uploaded {name}')
 
 
 @bot.command()
