@@ -186,6 +186,7 @@ async def delete(ctx, *, name):
 @bot.command()
 async def setintro(ctx, *, name):
     """Set intro sound to play when you enter voice chat. Format: `s!setintro {name}`"""
+    name = name.lower().strip()
     if not name:
         await ctx.send("Name is required")
         return
