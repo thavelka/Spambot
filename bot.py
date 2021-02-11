@@ -154,8 +154,17 @@ async def list(ctx):
             await ctx.send('Sounds directory is empty. Type s!help to see how to upload new sound files.')
         else:
             files.sort()
-            mp3s = [x.split(".")[0] for x in files if ".mp3" in x and x != ".tmp.mp3"]
-            await ctx.send(', '.join(mp3s))
+            mp3s = [x.split(".")[0] for x in files if ".mp3" in x and x[0] != "."]
+            string_buffer = ""
+            for name in mp3s:
+                if len(string_buffer) == 0:
+                    string_buffer = name
+                elif len(string_buffer) + len(name) + 2 < 2000:
+                    string_buffer = ', '.join((string_buffer, name))
+                else:
+                    await ctx.send(string_buffer)
+                    string_buffer = name
+            await ctx.send(string_buffer)
 
 
 @bot.command()
