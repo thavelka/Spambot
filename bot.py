@@ -75,15 +75,18 @@ async def play(ctx, query, *effects):
 
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
         ctx.voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
-        await asyncio.sleep(62)
-    if ctx.voice_client and not ctx.voice_client.is_playing():
-        await ctx.voice_client.disconnect()
 
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    # Only continue if user is joining VC
-    if before.channel is None and after.channel is not None:
+    # Leave after last person leaves VC
+    if before.channel is not None and after.channel is None:
+        if len(before.channel.members) <= 2:
+            voice_client = member.guild.voice_client
+            if voice_client is not None:
+                await voice_client.disconnect()
+    # Play sound if user is joining VC
+    elif before.channel is None and after.channel is not None:
         intro_dict = get_intro_dict(member.guild)
 
         # Check if user has intro sound set
@@ -110,11 +113,6 @@ async def on_voice_state_update(member, before, after):
         # Play the sound
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filepath))
         voice_client.play(source, after=lambda e:print('Player error: %s' % e) if e else None)
-
-        # Disconnect after a minute if not playing anything
-        await asyncio.sleep(62)
-        if voice_client and not voice_client.is_playing():
-            await voice_client.disconnect()
 
 @bot.command()
 async def upload(ctx, *, name):
