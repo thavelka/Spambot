@@ -46,7 +46,7 @@ async def on_error(event, *args, **kwargs):
 
 @bot.command()
 async def play(ctx, query, *effects):
-    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow, echo, robot, loop, reverse](optional)`"""
+    """Plays a file from the guild's sounds folder. Format: `s!play {name} [bb, fast, slow, echo, robot, loop, reverse, vibe](optional)`"""
     filepath = f'sounds/{ctx.guild.id}/{query.lower()}.mp3'
     if not path.exists(filepath):
         await ctx.send(f'Sound {query} not found')
@@ -65,6 +65,8 @@ async def play(ctx, query, *effects):
                     os.system(f'ffmpeg -y -i {inpath} -af asetrate=22050*0.6,aresample=22050 {outpath}')
                 elif effect == "echo":
                     os.system(f'ffmpeg -y -i {inpath} -af aecho=0.9:0.6:200:1 {outpath}')
+                elif effect == "vibe":
+                    os.system(f'ffmpeg -y -i {inpath} -af vibrato=f=10:d=0.9 {outpath}')
                 elif effect == "robot":
                     os.system(f'ffmpeg -y -i {inpath} -af afftfilt="real=\'hypot(re,im)*sin(0)\':imag=\'hypot(re,im)*cos(0)\':win_size=512:overlap=0.75" {outpath}')
                 elif effect == "loop":
