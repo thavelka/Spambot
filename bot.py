@@ -118,8 +118,8 @@ async def on_voice_state_update(member, before, after):
 
 @bot.command()
 async def upload(ctx, *, name):
-    name = name.lower().strip()
     """Uploads a sound file. Format: `s!upload {name}` plus attachment"""
+    name = name.lower().strip()
     if not ctx.message.attachments:
         await ctx.send("Attachment required")
     elif not name:
